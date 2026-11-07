@@ -21,11 +21,13 @@ export class App {
   readonly commandQuery = signal('');
   readonly isLight = signal(false);
   readonly isDemo = signal(false);
+  readonly isLocal = signal(false);
 
   private readonly commands = [
     { path: '/', label: 'Panoramica' },
     { path: '/demo', label: 'Dashboard demo' },
     { path: '/login', label: 'Accesso area privata' },
+    { path: '/local/import', label: 'Importazione locale' },
     { path: '/demo/import', label: 'Procedura import demo' },
     { path: '/demo/pending-requests', label: 'Richieste demo' },
     { path: '/demo/relationships', label: 'Relazioni demo' },
@@ -52,19 +54,22 @@ export class App {
 
   constructor() {
     this.isDemo.set(this.router.url.startsWith('/demo'));
+    this.isLocal.set(this.router.url.startsWith('/local'));
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
         this.isDemo.set(event.urlAfterRedirects.startsWith('/demo'));
+        this.isLocal.set(event.urlAfterRedirects.startsWith('/local'));
         this.menuOpen.set(false);
-        const isPrivate =
+        const isNoIndex =
           event.urlAfterRedirects.startsWith('/app') ||
-          event.urlAfterRedirects.startsWith('/login');
+          event.urlAfterRedirects.startsWith('/login') ||
+          event.urlAfterRedirects.startsWith('/local');
         this.meta.updateTag({
           name: 'robots',
-          content: isPrivate ? 'noindex, nofollow, noarchive' : 'index, follow',
+          content: isNoIndex ? 'noindex, nofollow, noarchive' : 'index, follow',
         });
-        if (isPrivate) {
+        if (isNoIndex) {
           this.document.head.querySelector('link[rel="canonical"]')?.remove();
         }
       });

@@ -6,6 +6,7 @@
       >Panoramica</a
     >
     <a routerLink="/demo" routerLinkActive="active">Demo</a>
+    <a routerLink="/local/import" routerLinkActive="active">Import locale</a>
     <a routerLink="/login" routerLinkActive="active">Area privata</a>
   </nav>
   <div class="top-actions">
@@ -47,7 +48,12 @@
 
 <div class="app-layout" [class.menu-open]="menuOpen()">
   <nav id="app-navigation" class="sidebar" aria-label="Sezioni dell’app">
-    @if (isDemo()) {
+    @if (isLocal()) {
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        >Torna alla panoramica</a
+      >
+      <a routerLink="/local/import" routerLinkActive="active">Importa un export</a>
+    } @else if (isDemo()) {
       <a routerLink="/demo" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
         >Dashboard</a
       >

@@ -10,6 +10,7 @@ Applicazione Angular local-first per esplorare export JSON/ZIP di Instagram. Que
 ## Funzionalità presenti
 
 - Landing e demo pubblica con dati sintetici dichiarati.
+- Importazione locale senza account su `/local/import`, separata dalla demo sintetica e dall'area privata.
 - Dashboard, confronti, relazioni, richieste pendenti, suggerimenti esplicabili e limiti delle metriche.
 - Parser JSON/ZIP locale in Web Worker, hash SHA-256, controlli su dimensione, numero entry, decompressione e path traversal.
 - Preview prima del salvataggio; import in memoria oppure snapshot cifrato in IndexedDB con AES-GCM.
@@ -65,7 +66,7 @@ La route guard e il controllo `app_metadata.role` sono controlli client. **Non s
 
 ## SEO e deploy
 
-Le sole route previste per prerendering e indicizzazione sono landing e demo sintetica. `NG_APP_SITE_URL` deve essere impostato con l'URL Vercel effettivamente assegnato prima di generare canonical e sitemap; senza valore valido il build li omette invece di pubblicare URL inventati. Le route private non entrano nella sitemap e hanno `noindex`/header configurati.
+Le sole route previste per prerendering e indicizzazione sono landing e demo sintetica. L'importazione locale (`/local/import`), come le route private, non entra nella sitemap e usa `noindex`/header configurati. `NG_APP_SITE_URL` deve essere impostato con l'URL Vercel effettivamente assegnato prima di generare canonical e sitemap; senza valore valido il build li omette invece di pubblicare URL inventati.
 
 `vercel.json` configura la build, i rewrite per il refresh delle route e gli header di sicurezza. Per il deploy Vercel, collega questo repository come progetto autonomo con root directory `.`; consulta [Vercel deployment](docs/VERCEL-DEPLOYMENT.md). Non configurare Supabase né variabili d'ambiente non necessarie: la demo pubblica usa dati sintetici e non richiede account.
 

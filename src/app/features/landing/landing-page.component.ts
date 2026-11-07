@@ -17,9 +17,13 @@ import { getRuntimeConfig } from '../../core/config/runtime-config';
       </p>
       <div class="hero-actions">
         <a class="primary-button" routerLink="/demo">Esplora la demo sintetica</a>
+        <a class="quiet-button" routerLink="/local/import">Prova il tuo export in locale</a>
         <a class="quiet-button" routerLink="/login">Area privata</a>
       </div>
-      <p class="limit-note">La demo usa esclusivamente dati di esempio chiaramente indicati.</p>
+      <p class="limit-note">
+        La demo usa dati sintetici. L'importazione locale non richiede un account e non invia il
+        file.
+      </p>
     </section>
 
     <section class="page section-grid" aria-labelledby="problem-title">

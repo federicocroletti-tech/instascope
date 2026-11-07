@@ -13,7 +13,7 @@ Il parsing e l'anteprima avvengono in memoria nel browser. Su scelta esplicita, 
 ## Servizi esterni
 
 - **Supabase Auth:** non configurato. Se configurato, riceve solo i dati necessari all'autenticazione e alla sessione; gli archivi Instagram e i payload snapshot non vengono inviati.
-- **Vercel:** deployment non verificato. L'hosting statico riceve richieste HTTP e può generare log tecnici secondo la configurazione del provider; i file selezionati dal browser non sono inclusi nelle richieste dell'app.
+- **Vercel:** l'hosting statico riceve richieste HTTP e può generare log tecnici secondo la configurazione del provider; i file selezionati dal browser non sono inclusi nelle richieste dell'app.
 - **Analytics, error tracking, advertising:** non configurati.
 
 ## Conservazione e diritti

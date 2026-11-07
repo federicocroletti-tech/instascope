@@ -14,4 +14,4 @@ Non aggiungere chiavi Supabase finché URL, anon key e policy di autorizzazione 
 
 ## Verifica prima della pubblicazione
 
-Controlla il deploy preview e i refresh su `/demo`, `/demo/relationships`, `/app/dashboard` e `/login`, oltre a canonical/sitemap, `Content-Security-Policy`, `X-Robots-Tag`, referrer e MIME headers. La demo pubblica usa dati sintetici e non carica file.
+Controlla il deploy preview e i refresh su `/demo`, `/demo/relationships`, `/local/import`, `/app/dashboard` e `/login`, oltre a canonical/sitemap, `Content-Security-Policy`, `X-Robots-Tag`, referrer e MIME headers. La demo pubblica usa dati sintetici e non carica file; l'import locale accetta un file solo nel browser senza inviarlo ai server dell'app.

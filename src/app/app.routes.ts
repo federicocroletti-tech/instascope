@@ -88,6 +88,14 @@ export const routes: Routes = [
       import('./features/auth/login-page.component').then((module) => module.LoginPageComponent),
   },
   {
+    path: 'local/import',
+    data: { local: true, robots: 'noindex, nofollow, noarchive' },
+    loadComponent: () =>
+      import('./features/imports/import-page.component').then(
+        (module) => module.ImportPageComponent,
+      ),
+  },
+  {
     path: 'app',
     canActivate: [ownerGuard],
     canActivateChild: [ownerGuard],
