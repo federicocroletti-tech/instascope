@@ -3,6 +3,7 @@
 Applicazione Angular local-first per esplorare export JSON/ZIP di Instagram. Questo repository contiene l'app InstaScope in modo autonomo; non è collegata a un account Instagram né invia gli archivi ai nostri server.
 
 [Repository GitHub](https://github.com/federicocroletti-tech/instascope)
+[Demo online](https://instascope-theta.vercel.app)
 
 > **Privacy:** Progettato secondo principi di privacy by design e data minimization. La conformità finale dipende dalla configurazione e dall'utilizzo effettivo.
 

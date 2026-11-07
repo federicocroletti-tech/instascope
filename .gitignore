@@ -53,3 +53,4 @@ Thumbs.db
 /test-results/
 /coverage/
 /.tsupgrader/
+.vercel
