@@ -55,7 +55,7 @@ La configurazione del parser e i dati sintetici sono in `src/app/core/import/` e
 
 La suite locale ha superato 17 test unitari, 5 test Playwright E2E, scansioni axe sulle 11 route pubbliche/demo, lint, formattazione, type-check, build di produzione e audit dipendenze con soglia MEDIUM. Il workflow autonomo esegue questi controlli, Gitleaks e CodeQL per ogni push e pull request.
 
-Le anteprime sintetiche desktop, tablet e mobile sono disponibili in `public/assets/previews/`; rigenerale con `corepack pnpm run screenshots:demo`. Non usare export Instagram o dati reali in fixture, screenshot o repository.
+Puoi generare anteprime sintetiche desktop, tablet e mobile in `public/assets/previews/` con `corepack pnpm run screenshots:demo`. Non usare export Instagram o dati reali in fixture, screenshot o repository.
 
 ## Privacy e sicurezza
 
