@@ -1,0 +1,118 @@
+<a class="skip-link" href="#main-content">Vai al contenuto</a>
+<header class="topbar">
+  <a class="wordmark" routerLink="/" aria-label="InstaScope, pagina iniziale">InstaScope</a>
+  <nav class="top-links" aria-label="Navigazione principale">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+      >Panoramica</a
+    >
+    <a routerLink="/demo" routerLinkActive="active">Demo</a>
+    <a routerLink="/login" routerLinkActive="active">Area privata</a>
+  </nav>
+  <div class="top-actions">
+    <button
+      class="quiet-button"
+      type="button"
+      (click)="toggleTheme()"
+      [attr.aria-label]="isLight() ? 'Attiva tema scuro' : 'Attiva tema chiaro'"
+    >
+      {{ isLight() ? 'Tema scuro' : 'Tema chiaro' }}
+    </button>
+    <button
+      class="quiet-button command-button"
+      type="button"
+      (click)="openCommandPalette()"
+      aria-keyshortcuts="Control+K Meta+K"
+    >
+      Cerca <kbd>Ctrl K</kbd>
+    </button>
+    <button
+      class="menu-button"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="app-navigation"
+    >
+      <span class="sr-only">{{ menuOpen() ? 'Chiudi navigazione' : 'Apri navigazione' }}</span>
+      <span aria-hidden="true">{{ menuOpen() ? '×' : '☰' }}</span>
+    </button>
+  </div>
+</header>
+
+@if (isDemo()) {
+  <p class="demo-banner" role="status">
+    <strong>Dati dimostrativi.</strong> Profili e valori sono sintetici e non provengono da
+    Instagram.
+  </p>
+}
+
+<div class="app-layout" [class.menu-open]="menuOpen()">
+  <nav id="app-navigation" class="sidebar" aria-label="Sezioni dell’app">
+    @if (isDemo()) {
+      <a routerLink="/demo" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        >Dashboard</a
+      >
+      <a routerLink="/demo/import" routerLinkActive="active">Procedura import</a>
+      <a routerLink="/demo/pending-requests" routerLinkActive="active">Richieste pendenti</a>
+      <a routerLink="/demo/relationships" routerLinkActive="active">Relazioni</a>
+      <a routerLink="/demo/recent" routerLinkActive="active">Ultimi aggiunti</a>
+      <a routerLink="/demo/recommendations" routerLinkActive="active">Suggerimenti</a>
+      <a routerLink="/demo/insights" routerLinkActive="active">Limiti e consigli</a>
+      <a routerLink="/demo/privacy" routerLinkActive="active">Centro privacy</a>
+      <a routerLink="/demo/demographics" routerLinkActive="active">Dati non disponibili</a>
+      <a routerLink="/demo/settings" routerLinkActive="active">Impostazioni</a>
+    } @else {
+      <a routerLink="/app/dashboard" routerLinkActive="active">Dashboard privata</a>
+      <a routerLink="/app/imports" routerLinkActive="active">Importazioni</a>
+      <a routerLink="/app/pending-requests" routerLinkActive="active">Richieste pendenti</a>
+      <a routerLink="/app/relationships" routerLinkActive="active">Relazioni</a>
+      <a routerLink="/app/recent" routerLinkActive="active">Ultimi aggiunti</a>
+      <a routerLink="/app/recommendations" routerLinkActive="active">Suggerimenti</a>
+      <a routerLink="/app/insights" routerLinkActive="active">Limiti e consigli</a>
+      <a routerLink="/app/privacy" routerLinkActive="active">Centro privacy</a>
+      <a routerLink="/app/demographics" routerLinkActive="active">Dati non disponibili</a>
+      <a routerLink="/app/settings" routerLinkActive="active">Impostazioni</a>
+    }
+  </nav>
+  <main id="main-content" class="main-content">
+    <router-outlet />
+  </main>
+</div>
+
+@if (commandOpen()) {
+  <div class="command-overlay">
+    <button
+      class="command-backdrop"
+      type="button"
+      aria-label="Chiudi ricerca e comandi"
+      (click)="closeCommandPalette()"
+    ></button>
+    <section
+      class="command-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="command-title"
+      (keydown.escape)="closeCommandPalette()"
+    >
+      <h2 id="command-title">Ricerca e comandi</h2>
+      <label for="command-search">Vai a una sezione</label>
+      <input
+        id="command-search"
+        type="search"
+        [value]="commandQuery()"
+        (input)="setCommandQuery($event)"
+      />
+      <ul>
+        @for (item of filteredCommands(); track item.path) {
+          <li>
+            <a [routerLink]="item.path" (click)="closeCommandPalette()">{{ item.label }}</a>
+          </li>
+        } @empty {
+          <li>Nessun risultato.</li>
+        }
+      </ul>
+      <button type="button" class="quiet-button" (click)="closeCommandPalette()">
+        Chiudi <kbd>Esc</kbd>
+      </button>
+    </section>
+  </div>
+}

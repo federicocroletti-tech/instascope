@@ -1,0 +1,37 @@
+packages:
+  - '.'
+
+overrides:
+  minimatch: ^11.0.5
+
+allowBuilds:
+  '@parcel/watcher': false
+  esbuild: false
+  lmdb: false
+  msgpackr-extract: false
+
+minimumReleaseAgeExclude:
+  - '@angular/common@22.2.5'
+  - '@angular/compiler-cli@22.2.5'
+  - '@angular/compiler@22.2.5'
+  - '@angular/core@22.2.5'
+  - '@angular/forms@22.2.5'
+  - '@angular/platform-browser@22.2.5'
+  - '@angular/platform-server@22.2.5'
+  - '@angular/router@22.2.5'
+  - '@tailwindcss/node@4.3.5'
+  - '@tailwindcss/oxide-android-arm64@4.3.5'
+  - '@tailwindcss/oxide-darwin-arm64@4.3.5'
+  - '@tailwindcss/oxide-darwin-x64@4.3.5'
+  - '@tailwindcss/oxide-freebsd-x64@4.3.5'
+  - '@tailwindcss/oxide-linux-arm-gnueabihf@4.3.5'
+  - '@tailwindcss/oxide-linux-arm64-gnu@4.3.5'
+  - '@tailwindcss/oxide-linux-arm64-musl@4.3.5'
+  - '@tailwindcss/oxide-linux-x64-gnu@4.3.5'
+  - '@tailwindcss/oxide-linux-x64-musl@4.3.5'
+  - '@tailwindcss/oxide-wasm32-wasi@4.3.5'
+  - '@tailwindcss/oxide-win32-arm64-msvc@4.3.5'
+  - '@tailwindcss/oxide-win32-x64-msvc@4.3.5'
+  - '@tailwindcss/oxide@4.3.5'
+  - '@tailwindcss/postcss@4.3.5'
+  - tailwindcss@4.3.5
