@@ -13,21 +13,13 @@ import { DEMO_SNAPSHOTS } from '../demo/demo-data';
     <section class="page">
       <header class="page-heading">
         <p class="eyebrow">
-          {{ demo ? 'Procedura illustrativa' : local ? 'Importazione locale' : 'Area privata' }}
+          {{ demo ? 'Procedura illustrativa' : 'Area privata' }}
         </p>
         <h1>Importa un export</h1>
         <p class="lead">
           Il parser funziona nel browser. Nessun file viene caricato o trasmesso a servizi esterni.
         </p>
       </header>
-
-      @if (local) {
-        <p class="status-message" role="note">
-          Area locale senza account: seleziona il tuo file qui. Il file non viene inviato ai server
-          di InstaScope; l'anteprima resta in memoria finché non scegli se salvarla cifrata nel
-          browser.
-        </p>
-      }
 
       @if (demo) {
         <p class="status-message" role="status">
@@ -232,7 +224,6 @@ export class ImportPageComponent {
   readonly facade = inject(SnapshotFacade);
 
   readonly demo: boolean;
-  readonly local: boolean;
   readonly selectedFile = signal<File | null>(null);
   readonly preview = signal<ParsedArchive | null>(null);
   readonly error = signal<string | null>(null);
@@ -278,7 +269,6 @@ export class ImportPageComponent {
     const route = inject(ActivatedRoute);
 
     this.demo = route.snapshot.data['demo'] === true;
-    this.local = route.snapshot.data['local'] === true;
   }
 
   selectFile(event: Event): void {
