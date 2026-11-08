@@ -2,10 +2,13 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist/instascope/browser",
   "framework": "angular",
+  "redirects": [
+    { "source": "/local", "destination": "/", "permanent": false },
+    { "source": "/local/:path*", "destination": "/", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/app/:path*", "destination": "/index.html" },
     { "source": "/login", "destination": "/index.html" },
-    { "source": "/local/:path*", "destination": "/index.html" },
     { "source": "/demo/:path*", "destination": "/index.html" }
   ],
   "headers": [
@@ -32,10 +35,6 @@
     },
     {
       "source": "/login",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
-    },
-    {
-      "source": "/local/:path*",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     }
   ]

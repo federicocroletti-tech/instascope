@@ -12,17 +12,15 @@ import { getRuntimeConfig } from '../../core/config/runtime-config';
       <p class="eyebrow">Analisi locale · privacy by design</p>
       <h1>Leggi i tuoi snapshot.<br />Non caricare i tuoi dati.</h1>
       <p class="lead">
-        InstaScope confronta archivi Instagram esportati direttamente nel browser. I file non
-        vengono inviati a server esterni.
+        Esplora dashboard e confronti con dati dimostrativi interamente sintetici. Nessun account o
+        file è necessario.
       </p>
       <div class="hero-actions">
         <a class="primary-button" routerLink="/demo">Esplora la demo sintetica</a>
-        <a class="quiet-button" routerLink="/local/import">Prova il tuo export in locale</a>
         <a class="quiet-button" routerLink="/login">Area privata</a>
       </div>
       <p class="limit-note">
-        La demo usa dati sintetici. L'importazione locale non richiede un account e non invia il
-        file.
+        La demo usa solo dati sintetici. Le pagine pubbliche non accettano export reali.
       </p>
     </section>
 
