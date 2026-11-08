@@ -7,7 +7,7 @@
 - Path assoluti, traversal, ZIP64/multi-volume, cifratura ZIP e metodi di compressione non supportati sono rifiutati.
 - Snapshot in IndexedDB cifrati con AES-GCM 256, IV random da Web Crypto e chiave derivata con PBKDF2/SHA-256 da passphrase e salt random. La passphrase non è salvata; verificare il costo KDF su dispositivi lenti prima del rilascio.
 - Nessun log del contenuto importato; gli errori mostrati non includono record o username.
-- CSP, Permissions-Policy, Referrer-Policy, X-Content-Type-Options e `frame-ancestors` sono predisposti in `vercel.json`; la risposta del deploy non è stata verificata.
+- CSP, Permissions-Policy, Referrer-Policy, X-Content-Type-Options e `frame-ancestors` sono configurati in `vercel.json`. La CSP consente gli script inline Angular/Beasties solo tramite hash SHA-256 esatti; non usare `'unsafe-inline'` in `script-src`.
 
 ## Autenticazione e autorizzazione
 
@@ -20,7 +20,7 @@ Non salvare service-role key, password, chiavi di cifratura o dati Instagram in 
 - XSS/browser extension/accesso al profilo browser possono leggere dati mostrati o in memoria.
 - Un dispositivo sbloccato o un archivio esportato fuori dal browser non è protetto dall'app.
 - IndexedDB può essere rimosso dal browser o incluso in backup non controllati.
-- La configurazione CSP deve essere testata con ogni feature e autentica URL Supabase.
+- La configurazione CSP deve essere testata con ogni feature e autentica URL Supabase. Se una build aggiorna uno script inline generato, aggiorna il relativo hash solo dopo aver verificato il contenuto e il comportamento nella preview.
 - Nessun penetration test, deploy, verifica di header reali o revisione legale è stata eseguita.
 
 ## Audit dipendenze

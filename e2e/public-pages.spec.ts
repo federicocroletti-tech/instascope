@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
@@ -34,6 +36,47 @@ test('public local import URL redirects to landing without exposing file upload'
   await expect(page).toHaveURL('/');
   await expect(page.getByRole('heading', { name: /Leggi i tuoi snapshot/ })).toBeVisible();
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
+});
+
+test('CSP hashes allow the exact generated inline scripts without unsafe-inline', () => {
+  const vercelConfig = JSON.parse(readFileSync('vercel.json', 'utf8')) as {
+    headers: Array<{
+      source: string;
+      headers: Array<{ key: string; value: string }>;
+    }>;
+  };
+  const policy = vercelConfig.headers
+    .find((entry) => entry.source === '/(.*)')
+    ?.headers.find((header) => header.key === 'Content-Security-Policy')?.value;
+  expect(policy).toBeDefined();
+
+  const scriptSources = policy?.match(/(?:^|;)\s*script-src\s+([^;]+)/)?.[1];
+  expect(scriptSources).toBeDefined();
+  expect(scriptSources).not.toContain("'unsafe-inline'");
+
+  const html = readFileSync('dist/instascope/browser/index.html', 'utf8');
+  const executableInlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter(([, attributes]) => !/\bsrc\s*=/.test(attributes))
+    .filter(([, attributes]) => {
+      const type = attributes.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1].toLowerCase();
+      return (
+        !type ||
+        ['module', 'text/javascript', 'application/javascript', 'text/ecmascript'].includes(type)
+      );
+    });
+
+  for (const [, , source] of executableInlineScripts) {
+    const hash = createHash('sha256').update(source).digest('base64');
+    expect(scriptSources).toContain(`'sha256-${hash}'`);
+  }
+
+  for (const hash of [
+    'VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=',
+    '8sGKvDKC8crv9OBcqEMvqrNDWlm1/80h7NJpJzqOnLI=',
+    'LMY6wYoFV9I4wWzxaq1N/dTpl4iurQktw706UCHK3vM=',
+  ]) {
+    expect(scriptSources).toContain(`'sha256-${hash}'`);
+  }
 });
 
 test('all demo routes work and clearly identify synthetic content', async ({ page }) => {
