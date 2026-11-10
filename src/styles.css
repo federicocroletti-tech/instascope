@@ -2,33 +2,40 @@
 
 :root {
   color-scheme: dark;
-  --color-ink: #edf6f8;
-  --color-muted: #cbd8d2;
-  --color-primary: #d9eee7;
-  --color-primary-strong: #f5fbfd;
-  --color-accent: #58c6a2;
-  --color-accent-strong: #7ee4be;
-  --color-background: #0b1821;
-  --color-background-soft: #112531;
-  --color-surface: #122430;
-  --color-line: #527080;
-  --color-focus: #7ee4be;
+  --color-ink: #fff3f8;
+  --color-muted: #dbc5d4;
+  --color-primary: #ffd1e1;
+  --color-primary-strong: #fff8fb;
+  --color-accent: #e1306c;
+  --color-on-accent: #08060a;
+  --color-accent-strong: #f77737;
+  --color-background: #160f18;
+  --color-background-soft: #251927;
+  --color-surface: #211622;
+  --color-line: #765c72;
+  --color-focus: #fcaf45;
+  --color-instagram-purple: #833ab4;
+  --color-instagram-pink: #e1306c;
+  --color-instagram-orange: #f77737;
+  --color-instagram-yellow: #fcaf45;
   --radius-card: 0.75rem;
   font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 }
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-ink: #0b1821;
-  --color-muted: #112531;
-  --color-primary: #112531;
-  --color-primary-strong: #0b1821;
-  --color-background: #f5fbfd;
-  --color-background-soft: #d9eee7;
-  --color-surface: #edf6f8;
-  --color-line: #527080;
-  --color-focus: #0b1821;
-  --color-accent-strong: #0b1821;
+  --color-ink: #271421;
+  --color-muted: #594553;
+  --color-primary: #6f235d;
+  --color-primary-strong: #271421;
+  --color-background: #fff8f4;
+  --color-background-soft: #ffe9df;
+  --color-surface: #fffdfb;
+  --color-line: #a98e9f;
+  --color-focus: #792044;
+  --color-accent: #b51d59;
+  --color-on-accent: #fff8f4;
+  --color-accent-strong: #833ab4;
 }
 
 * {
@@ -144,7 +151,7 @@ select {
   border: 1px solid var(--color-accent);
   border-radius: 0.5rem;
   background: var(--color-accent);
-  color: var(--color-background);
+  color: var(--color-on-accent);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -153,6 +160,10 @@ select {
   padding: 0.55rem 0.85rem;
   text-decoration: none;
   font-weight: 750;
+}
+
+.locale-select {
+  background-color: var(--color-background);
 }
 
 .quiet-button,

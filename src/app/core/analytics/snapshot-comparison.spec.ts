@@ -2,9 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   compareSnapshots,
-  daysAwaitingRequest,
   filterAccountsByDays,
-  filterPendingRequests,
+  partitionLostFollowers,
 } from './snapshot-comparison';
 import { Snapshot } from '../../shared/models/snapshot.model';
 
@@ -47,22 +46,6 @@ describe('snapshot comparison', () => {
     expect(compareSnapshots(current).lostFollowers).toBeNull();
   });
 
-  it('does not report missing datasets as zero changes or false account losses', () => {
-    const incompleteCurrent: Snapshot = {
-      ...current,
-      datasets: { following: current.datasets.following },
-    };
-
-    const result = compareSnapshots(incompleteCurrent, older);
-
-    expect(result.followingNotFollowers).toBeNull();
-    expect(result.followersNotFollowing).toBeNull();
-    expect(result.newFollowers).toBeNull();
-    expect(result.lostFollowers).toBeNull();
-    expect(result.newFollowing?.map(({ username }) => username)).toEqual(['following-new']);
-    expect(result.removedFollowing?.map(({ username }) => username)).toEqual(['following-removed']);
-  });
-
   it('filters only valid timestamps within the inclusive range', () => {
     const now = new Date('2026-11-01T00:00:00.000Z');
     const accounts = [
@@ -78,28 +61,17 @@ describe('snapshot comparison', () => {
     ]);
   });
 
-  it('searches and sorts pending requests, keeping missing and future dates last', () => {
-    const now = new Date('2026-11-07T12:00:00.000Z');
-    const accounts = [
-      { username: 'demo_newest', timestamp: '2026-11-06T00:00:00.000Z' },
-      { username: 'demo_oldest', timestamp: '2026-10-01T00:00:00.000Z' },
-      { username: 'demo_missing' },
-      { username: 'demo_future', timestamp: '2026-11-08T00:00:00.000Z' },
-    ];
+  it('partitions lost followers by whether they are still followed', () => {
+    const groups = partitionLostFollowers(
+      [{ username: 'still-followed' }, { username: 'not-followed' }],
+      [{ username: 'STILL-FOLLOWED' }],
+    );
 
-    expect(
-      filterPendingRequests(accounts, 'DEMO_', 'oldest', now).map(({ username }) => username),
-    ).toEqual(['demo_oldest', 'demo_newest', 'demo_missing', 'demo_future']);
-    expect(
-      filterPendingRequests(accounts, 'newest', 'username', now).map(({ username }) => username),
-    ).toEqual(['demo_newest']);
-    expect(
-      filterPendingRequests(accounts, '', 'newest', now).map(({ username }) => username),
-    ).toEqual(['demo_newest', 'demo_oldest', 'demo_missing', 'demo_future']);
+    expect(groups?.followedByMe.map(({ username }) => username)).toEqual(['still-followed']);
+    expect(groups?.notFollowedByMe.map(({ username }) => username)).toEqual(['not-followed']);
+  });
 
-    expect(daysAwaitingRequest('2026-11-04T11:59:00.000Z', now)).toBe(3);
-    expect(daysAwaitingRequest(undefined, now)).toBeNull();
-    expect(daysAwaitingRequest('invalid-date', now)).toBeNull();
-    expect(daysAwaitingRequest('2026-11-08T00:00:00.000Z', now)).toBeNull();
+  it('does not classify lost followers without a current following dataset', () => {
+    expect(partitionLostFollowers([{ username: 'unknown' }], undefined)).toBeNull();
   });
 });

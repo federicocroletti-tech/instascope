@@ -3,6 +3,7 @@ import { RenderMode, ServerRoute } from '@angular/ssr';
 export const serverRoutes: ServerRoute[] = [
   { path: '', renderMode: RenderMode.Prerender },
   { path: 'demo', renderMode: RenderMode.Prerender },
+  { path: 'guida-export', renderMode: RenderMode.Prerender },
   {
     path: '**',
     renderMode: RenderMode.Client,

@@ -1,9 +1,10 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, effect, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { SupabaseAuthService } from '../../core/auth/supabase-auth.service';
+import { LocaleService } from '../../core/i18n/locale.service';
 
 @Component({
   selector: 'app-login-page',
@@ -11,17 +12,28 @@ import { SupabaseAuthService } from '../../core/auth/supabase-auth.service';
   template: `
     <section class="page login-page">
       <header class="page-heading">
-        <p class="eyebrow">Area privata · noindex</p>
-        <h1>Accesso</h1>
+        <p class="eyebrow">
+          {{ locale.text('Area privata · noindex', 'Private workspace · noindex') }}
+        </p>
+        <h1>{{ locale.text('Accesso', 'Sign in') }}</h1>
         <p class="lead">
-          L’autenticazione controlla l’accesso all’interfaccia; gli export restano nel browser.
+          {{
+            locale.text(
+              'L’autenticazione controlla l’accesso all’interfaccia; gli export restano nel browser.',
+              'Authentication controls access to the interface; archives stay in your browser.'
+            )
+          }}
         </p>
       </header>
 
       @if (!auth.isConfigured) {
         <p class="status-message" role="status">
-          Autenticazione non configurata. L’area privata resta chiusa. NON DISPONIBILE: progetto
-          Supabase e policy owner.
+          {{
+            locale.text(
+              'Autenticazione non configurata. L’area privata resta chiusa. NON DISPONIBILE: progetto Supabase e policy owner.',
+              'Authentication is not configured. The private workspace remains closed. UNAVAILABLE: Supabase project and owner policies.'
+            )
+          }}
         </p>
       } @else {
         <form class="card login-form" (ngSubmit)="submit()">
@@ -32,32 +44,35 @@ import { SupabaseAuthService } from '../../core/auth/supabase-auth.service';
             type="email"
             autocomplete="username"
             required
-            [ngModel]="email"
-            (ngModelChange)="email = $event"
+            [(ngModel)]="email"
           />
-          <label for="password">Password</label>
+          <label for="password">{{ locale.text('Password', 'Password') }}</label>
           <input
             id="password"
             name="password"
             type="password"
             autocomplete="current-password"
             required
-            [ngModel]="password"
-            (ngModelChange)="password = $event"
+            [(ngModel)]="password"
           />
           @if (error()) {
             <p role="alert" class="error-message">{{ error() }}</p>
           }
-          <button mat-flat-button type="submit" [disabled]="busy()">Accedi</button>
+          <button mat-flat-button type="submit" [disabled]="busy()">
+            {{ locale.text('Accedi', 'Sign in') }}
+          </button>
         </form>
       }
 
       <aside class="card limitation">
-        <h2>Limite di autorizzazione</h2>
+        <h2>{{ locale.text('Limite di autorizzazione', 'Authorization boundary') }}</h2>
         <p>
-          La route guard è un controllo dell’interfaccia, non un confine di sicurezza server-side.
-          Senza backend/RLS owner verificato, l’area privata rimane disabilitata. IndexedDB è
-          accessibile dal profilo browser locale.
+          {{
+            locale.text(
+              'La route guard è un controllo dell’interfaccia, non un confine di sicurezza server-side. Senza backend/RLS owner verificato, l’area privata rimane disabilitata. IndexedDB è accessibile dal profilo browser locale.',
+              'The route guard protects the interface, not the server. Without a verified owner backend/RLS policy, the private workspace remains disabled. IndexedDB is accessible to the local browser profile.'
+            )
+          }}
         </p>
       </aside>
     </section>
@@ -95,11 +110,12 @@ import { SupabaseAuthService } from '../../core/auth/supabase-auth.service';
 })
 export class LoginPageComponent {
   readonly auth = inject(SupabaseAuthService);
+  readonly locale = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  email = '';
-  password = '';
+  readonly email = signal('');
+  readonly password = signal('');
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -107,7 +123,14 @@ export class LoginPageComponent {
     const title = inject(Title);
     const meta = inject(Meta);
 
-    title.setTitle('Accesso area privata — InstaScope');
+    effect(() =>
+      title.setTitle(
+        this.locale.text(
+          'Accesso area privata — InstaScope',
+          'Private workspace sign in — InstaScope',
+        ),
+      ),
+    );
     meta.updateTag({ name: 'robots', content: 'noindex, nofollow, noarchive' });
   }
 
@@ -115,21 +138,26 @@ export class LoginPageComponent {
     this.busy.set(true);
     this.error.set(null);
     try {
-      await this.auth.signIn(this.email, this.password);
+      await this.auth.signIn(this.email(), this.password());
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
       const destination =
         returnUrl?.startsWith('/app/') && !returnUrl.startsWith('//')
           ? returnUrl
           : '/app/dashboard';
       if (!(await this.auth.isOwner())) {
-        this.error.set('Accesso negato: è richiesto il ruolo owner verificato.');
+        this.error.set(
+          this.locale.text(
+            'Accesso negato: è richiesto il ruolo owner verificato.',
+            'Access denied: a verified owner role is required.',
+          ),
+        );
         return;
       }
       await this.router.navigateByUrl(destination);
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Accesso non riuscito.');
     } finally {
-      this.password = '';
+      this.password.set('');
       this.busy.set(false);
     }
   }

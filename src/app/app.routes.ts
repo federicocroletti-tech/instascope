@@ -3,6 +3,14 @@ import { ownerGuard } from './core/auth/owner.guard';
 
 export const routes: Routes = [
   {
+    path: 'guida-export',
+    loadComponent: () =>
+      import('./features/imports/export-guide.component').then(
+        (module) => module.ExportGuideComponent,
+      ),
+  },
+  { path: 'import', pathMatch: 'full', redirectTo: 'local/import' },
+  {
     path: '',
     loadComponent: () =>
       import('./features/landing/landing-page.component').then(
@@ -29,26 +37,26 @@ export const routes: Routes = [
             (module) => module.ImportPageComponent,
           ),
       },
-      ...(['pending-requests', 'relationships', 'recent', 'recommendations'] as const).map(
-        (path) => ({
-          path,
-          data: {
-            demo: true,
-            page:
-              path === 'pending-requests'
+      ...(
+        ['unfollow', 'pending-requests', 'recommendations', 'relationships', 'recent'] as const
+      ).map((path) => ({
+        path,
+        data: {
+          demo: true,
+          page:
+            path === 'unfollow'
+              ? 'unfollow'
+              : path === 'pending-requests'
                 ? 'pending'
-                : path === 'relationships'
-                  ? 'relationships'
-                  : path === 'recent'
-                    ? 'recent'
-                    : 'recommendations',
-          },
-          loadComponent: () =>
-            import('./features/data/data-page.component').then(
-              (module) => module.DataPageComponent,
-            ),
-        }),
-      ),
+                : path === 'recommendations'
+                  ? 'recommendations'
+                  : path === 'relationships'
+                    ? 'relationships'
+                    : 'recent',
+        },
+        loadComponent: () =>
+          import('./features/data/data-page.component').then((module) => module.DataPageComponent),
+      })),
       {
         path: 'insights',
         data: { demo: true },
@@ -88,6 +96,64 @@ export const routes: Routes = [
       import('./features/auth/login-page.component').then((module) => module.LoginPageComponent),
   },
   {
+    path: 'local',
+    data: { robots: 'noindex, nofollow, noarchive' },
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'import' },
+      {
+        path: 'import',
+        data: { local: true },
+        loadComponent: () =>
+          import('./features/imports/import-page.component').then(
+            (module) => module.ImportPageComponent,
+          ),
+      },
+      {
+        path: 'dashboard',
+        data: { local: true },
+        loadComponent: () =>
+          import('./features/dashboard/dashboard-page.component').then(
+            (module) => module.DashboardPageComponent,
+          ),
+      },
+      {
+        path: 'unfollow',
+        data: { local: true, page: 'unfollow' },
+        loadComponent: () =>
+          import('./features/data/data-page.component').then((module) => module.DataPageComponent),
+      },
+      ...(['pending-requests', 'relationships', 'recent', 'recommendations'] as const).map(
+        (path) => ({
+          path,
+          data: {
+            local: true,
+            page: path === 'pending-requests' ? 'pending' : path,
+          },
+          loadComponent: () =>
+            import('./features/data/data-page.component').then(
+              (module) => module.DataPageComponent,
+            ),
+        }),
+      ),
+      {
+        path: 'insights',
+        data: { local: true },
+        loadComponent: () =>
+          import('./features/insights/insights-page.component').then(
+            (module) => module.InsightsPageComponent,
+          ),
+      },
+      {
+        path: 'privacy',
+        data: { local: true },
+        loadComponent: () =>
+          import('./features/privacy/privacy-page.component').then(
+            (module) => module.PrivacyPageComponent,
+          ),
+      },
+    ],
+  },
+  {
     path: 'app',
     canActivate: [ownerGuard],
     canActivateChild: [ownerGuard],
@@ -107,6 +173,12 @@ export const routes: Routes = [
           import('./features/imports/import-page.component').then(
             (module) => module.ImportPageComponent,
           ),
+      },
+      {
+        path: 'unfollow',
+        data: { page: 'unfollow' },
+        loadComponent: () =>
+          import('./features/data/data-page.component').then((module) => module.DataPageComponent),
       },
       {
         path: 'pending-requests',

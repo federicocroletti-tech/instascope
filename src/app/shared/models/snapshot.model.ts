@@ -16,13 +16,34 @@ export interface InstagramAccount {
 
 export type SnapshotDatasets = Partial<Record<DatasetKey, InstagramAccount[]>>;
 
+export type ImportMode = 'replace' | 'integrate-new' | 'merge-update';
+
+export interface DatasetDetection {
+  filesFound: number;
+  recordsRead: number;
+  validRecords: number;
+  invalidRecords: number;
+}
+
 export interface ParsedArchive {
   sourceHash: string;
   importedAt: string;
   datasets: SnapshotDatasets;
+  categoryDetection?: Partial<Record<DatasetKey, DatasetDetection>>;
+  unrecognizedFiles?: number;
   invalidRecords: number;
   duplicateRecords: number;
   warnings: string[];
+}
+
+export interface ImportReport {
+  id: string;
+  mode: ImportMode;
+  recordsAdded: number;
+  recordsUpdated: number;
+  recordsIgnored: number;
+  recordsReplaced: number;
+  duplicateArchive: boolean;
 }
 
 export interface Snapshot extends ParsedArchive {

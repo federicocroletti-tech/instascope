@@ -1,24 +1,35 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { LocaleService } from '../../core/i18n/locale.service';
 
 @Component({
   selector: 'app-demographics-page',
   template: `
     <section class="page">
       <header class="page-heading">
-        <p class="eyebrow">Analisi responsabile</p>
-        <h1>Informazioni demografiche</h1>
+        <p class="eyebrow">{{ locale.text('Analisi responsabile', 'Responsible analysis') }}</p>
+        <h1>{{ locale.text('Informazioni demografiche', 'Demographic information') }}</h1>
       </header>
       <article class="card">
         <p>
-          Queste informazioni non sono disponibili nell’esportazione utilizzata e non vengono
-          inferite automaticamente.
+          {{
+            locale.text(
+              'Queste informazioni non sono disponibili nell’archivio utilizzato e non vengono inferite automaticamente.',
+              'This information is not available in the archive and is not inferred automatically.'
+            )
+          }}
         </p>
         <p>
-          InstaScope non deduce genere, sesso, città, età, etnia, orientamento, religione, salute o
-          opinioni politiche.
+          {{
+            locale.text(
+              'InstaScope non deduce genere, sesso, città, età, etnia, orientamento, religione, salute o opinioni politiche.',
+              'InstaScope does not infer gender, sex, city, age, ethnicity, orientation, religion, health, or political opinions.'
+            )
+          }}
         </p>
       </article>
     </section>
   `,
 })
-export class DemographicsPageComponent {}
+export class DemographicsPageComponent {
+  readonly locale = inject(LocaleService);
+}

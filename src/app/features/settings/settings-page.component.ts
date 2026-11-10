@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { LocaleService } from '../../core/i18n/locale.service';
 
 @Component({
   selector: 'app-settings-page',
@@ -7,20 +8,33 @@ import { RouterLink } from '@angular/router';
   template: `
     <section class="page">
       <header class="page-heading">
-        <p class="eyebrow">Preferenze locali</p>
-        <h1>Impostazioni</h1>
+        <p class="eyebrow">{{ locale.text('Preferenze locali', 'Local preferences') }}</p>
+        <h1>{{ locale.text('Impostazioni', 'Settings') }}</h1>
         <p class="lead">
-          Il selettore del tema e gli intervalli del grafico sono preferenze dell’interfaccia, non
-          dati Instagram.
+          {{
+            locale.text(
+              'Il selettore del tema e gli intervalli del grafico sono preferenze dell’interfaccia, non dati Instagram.',
+              'The theme selector and chart ranges are interface preferences, not Instagram data.'
+            )
+          }}
         </p>
       </header>
       <article class="card">
-        <h2>Sessione e archivio</h2>
+        <h2>{{ locale.text('Sessione e archivio', 'Session and archive') }}</h2>
         <p>
-          Per bloccare la chiave in memoria e terminare la sessione, esegui il logout o chiudi la
-          pagina.
+          {{
+            locale.text(
+              'Per bloccare la chiave in memoria e terminare la sessione, esegui il logout o chiudi la pagina.',
+              'To lock the in-memory key and end the session, sign out or close the page.'
+            )
+          }}
         </p>
-        <a routerLink="/app/privacy">Apri il centro privacy e la gestione snapshot</a>
+        <a routerLink="/app/privacy">{{
+          locale.text(
+            'Apri il centro privacy e la gestione snapshot',
+            'Open privacy center and snapshot management'
+          )
+        }}</a>
       </article>
     </section>
   `,
@@ -33,4 +47,6 @@ import { RouterLink } from '@angular/router';
     `,
   ],
 })
-export class SettingsPageComponent {}
+export class SettingsPageComponent {
+  readonly locale = inject(LocaleService);
+}

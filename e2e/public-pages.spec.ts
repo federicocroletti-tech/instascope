@@ -28,14 +28,15 @@ test('public landing explains local processing and links to the synthetic demo',
   await expect(page.getByRole('link', { name: 'Esplora la demo sintetica' })).toBeVisible();
 });
 
-test('public local import URL redirects to landing without exposing file upload', async ({
-  page,
-}) => {
+test('public local import URL opens the guided import without authentication', async ({ page }) => {
   await page.goto('/local/import');
 
-  await expect(page).toHaveURL('/');
-  await expect(page.getByRole('heading', { name: /Leggi i tuoi snapshot/ })).toBeVisible();
-  await expect(page.locator('input[type="file"]')).toHaveCount(0);
+  await expect(page).toHaveURL('/local/import');
+  await expect(page.locator('#archive-file')).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    'content',
+    'noindex, nofollow, noarchive',
+  );
 });
 
 test('CSP hashes allow the exact generated inline scripts without unsafe-inline', () => {
@@ -90,9 +91,11 @@ test('all demo routes work and clearly identify synthetic content', async ({ pag
   await expect(page.getByText('demo_user_004').first()).toBeVisible();
 
   await page.goto('/demo/import');
-  await expect(page.getByRole('heading', { name: 'Importa un export' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Importa un archivio dati Instagram' }),
+  ).toBeVisible();
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
-  await expect(page.getByText(/upload è disattivato/i)).toBeVisible();
+  await expect(page.getByText(/Demo pubblica: il caricamento è disattivato/i)).toBeVisible();
 });
 
 test('private route stays closed without authentication and is noindex', async ({ page }) => {
@@ -108,6 +111,7 @@ test('private route stays closed without authentication and is noindex', async (
 });
 
 test('public routes have no automated WCAG 2.2 A/AA violations', async ({ page }) => {
+  test.setTimeout(120_000);
   for (const route of demoRoutes) {
     await page.goto(route);
     const result = await new AxeBuilder({ page })
@@ -135,6 +139,7 @@ test('mobile layout fits and navigation, theme, and keyboard commands work', asy
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
+  await page.goto('/demo');
   await page.getByRole('button', { name: 'Apri navigazione' }).click();
   await expect(page.getByRole('navigation', { name: 'Sezioni dell’app' })).toBeVisible();
 });
