@@ -2,11 +2,10 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist/instascope/browser",
   "framework": "angular",
-  "redirects": [
-    { "source": "/local", "destination": "/", "permanent": false },
-    { "source": "/local/:path*", "destination": "/", "permanent": false }
-  ],
   "rewrites": [
+    { "source": "/local/:path*", "destination": "/index.html" },
+    { "source": "/import", "destination": "/index.html" },
+    { "source": "/guida-export", "destination": "/guida-export/index.html" },
     { "source": "/app/:path*", "destination": "/index.html" },
     { "source": "/login", "destination": "/index.html" },
     { "source": "/demo/:path*", "destination": "/index.html" }
@@ -17,7 +16,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-8sGKvDKC8crv9OBcqEMvqrNDWlm1/80h7NJpJzqOnLI=' 'sha256-LMY6wYoFV9I4wWzxaq1N/dTpl4iurQktw706UCHK3vM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co; font-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg=' 'sha256-8sGKvDKC8crv9OBcqEMvqrNDWlm1/80h7NJpJzqOnLI=' 'sha256-eQxHdQTdVILkU0WaUq2agawcCeDRA33R2ar3RRl7nqw=' 'sha256-LMY6wYoFV9I4wWzxaq1N/dTpl4iurQktw706UCHK3vM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co; font-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
         },
         {
           "key": "Permissions-Policy",
@@ -27,6 +26,13 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
+      ]
+    },
+    {
+      "source": "/local/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     },
     {

@@ -20,7 +20,7 @@ if (site.protocol !== 'https:' || site.pathname !== '/' || site.search || site.h
 }
 const origin = site.origin;
 
-for (const route of ['', 'demo']) {
+for (const route of ['', 'demo', 'guida-export']) {
   const file = resolve(root, route, 'index.html');
   let html = await readFile(file, 'utf8');
   const canonicalUrl = `${origin}/${route ? `${route}/` : ''}`;
@@ -40,7 +40,7 @@ for (const route of ['', 'demo']) {
   await writeFile(file, html, 'utf8');
 }
 
-const urls = ['', 'demo'].map(
+const urls = ['', 'demo', 'guida-export'].map(
   (route) => `  <url><loc>${origin}/${route ? `${route}/` : ''}</loc></url>`,
 );
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;

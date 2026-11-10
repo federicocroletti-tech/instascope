@@ -49,6 +49,28 @@ export function compareSnapshots(current: Snapshot, previous?: Snapshot): Snapsh
   };
 }
 
+export interface LostFollowerGroups {
+  followedByMe: InstagramAccount[];
+  notFollowedByMe: InstagramAccount[];
+}
+
+export function partitionLostFollowers(
+  lostFollowers: InstagramAccount[] | null,
+  currentFollowing: InstagramAccount[] | undefined,
+): LostFollowerGroups | null {
+  if (!lostFollowers || !currentFollowing) {
+    return null;
+  }
+
+  const following = new Set(currentFollowing.map((account) => account.username.toLowerCase()));
+  return {
+    followedByMe: lostFollowers.filter((account) => following.has(account.username.toLowerCase())),
+    notFollowedByMe: lostFollowers.filter(
+      (account) => !following.has(account.username.toLowerCase()),
+    ),
+  };
+}
+
 export function filterAccountsByDays(
   accounts: InstagramAccount[],
   days: number,
@@ -64,50 +86,4 @@ export function filterAccountsByDays(
     const time = Date.parse(account.timestamp);
     return Number.isFinite(time) && time >= cutoff && time <= now.getTime();
   });
-}
-
-export type PendingRequestSort = 'oldest' | 'newest' | 'username';
-
-export function filterPendingRequests(
-  accounts: readonly InstagramAccount[],
-  query: string,
-  sort: PendingRequestSort,
-  now: Date = new Date(),
-): InstagramAccount[] {
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const filtered = accounts.filter((account) =>
-    account.username.toLocaleLowerCase().includes(normalizedQuery),
-  );
-
-  return [...filtered].sort((left, right) => {
-    if (sort === 'username') {
-      return left.username.localeCompare(right.username, undefined, { sensitivity: 'base' });
-    }
-
-    const leftTime = pastTimestamp(left.timestamp, now.getTime());
-    const rightTime = pastTimestamp(right.timestamp, now.getTime());
-    if (leftTime === undefined) return rightTime === undefined ? 0 : 1;
-    if (rightTime === undefined) return -1;
-    return sort === 'oldest' ? leftTime - rightTime : rightTime - leftTime;
-  });
-}
-
-export function daysAwaitingRequest(
-  value: string | undefined,
-  now: Date = new Date(),
-): number | null {
-  const timestamp = pastTimestamp(value, now.getTime());
-  if (timestamp === undefined) return null;
-  return Math.floor((now.getTime() - timestamp) / (24 * 60 * 60 * 1_000));
-}
-
-function validTimestamp(value: string | undefined): number | undefined {
-  if (!value) return undefined;
-  const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) ? timestamp : undefined;
-}
-
-function pastTimestamp(value: string | undefined, now: number): number | undefined {
-  const timestamp = validTimestamp(value);
-  return timestamp !== undefined && timestamp <= now ? timestamp : undefined;
 }

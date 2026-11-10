@@ -1,21 +1,30 @@
 import Dexie, { Table } from 'dexie';
 import { Injectable, inject } from '@angular/core';
 import {
+  ImportMode,
+  ImportReport,
   ParsedArchive,
   Snapshot,
   SnapshotEnvelope,
   VaultMetadata,
 } from '../../shared/models/snapshot.model';
 import { VaultService } from '../crypto/vault.service';
+import { applyImportMode } from '../import/import-strategy';
 
 class InstaScopeDatabase extends Dexie {
   snapshots!: Table<SnapshotEnvelope, string>;
+  currentState!: Table<SnapshotEnvelope, string>;
   vault!: Table<VaultMetadata, string>;
 
   constructor() {
     super('instascope-local-v1');
     this.version(1).stores({
       snapshots: 'id, createdAt',
+      vault: 'id',
+    });
+    this.version(2).stores({
+      snapshots: 'id, createdAt',
+      currentState: 'id, createdAt',
       vault: 'id',
     });
   }
@@ -35,6 +44,7 @@ export class SnapshotRepository {
         iv: metadata.verifierIv,
         ciphertext: metadata.verifierCiphertext,
       });
+      await this.ensureCurrentState();
       return;
     }
 
@@ -47,6 +57,7 @@ export class SnapshotRepository {
         verifierIv: verifier.iv,
         verifierCiphertext: verifier.ciphertext,
       });
+      await this.ensureCurrentState();
     } catch (error) {
       this.vault.lock();
       throw error;
@@ -63,6 +74,7 @@ export class SnapshotRepository {
       iv: metadata.verifierIv,
       ciphertext: metadata.verifierCiphertext,
     });
+    await this.ensureCurrentState();
   }
 
   lock(): void {
@@ -73,11 +85,20 @@ export class SnapshotRepository {
     archive: ParsedArchive,
     allowDuplicate = false,
   ): Promise<{ id: string; duplicate: boolean }> {
+    const report = await this.importArchive(archive, 'replace', allowDuplicate);
+    return { id: report.id, duplicate: report.duplicateArchive };
+  }
+
+  async importArchive(
+    archive: ParsedArchive,
+    mode: ImportMode,
+    allowDuplicate = false,
+  ): Promise<ImportReport> {
     if (!this.vault.isUnlocked()) {
       throw new Error('Sblocca prima l’archivio locale.');
     }
-    const existing = await this.db.snapshots.toArray();
-    const duplicate = await this.findDuplicate(existing, archive.sourceHash);
+    const records = await this.db.snapshots.toArray();
+    const duplicate = await this.findDuplicate(records, archive.sourceHash);
     if (duplicate && !allowDuplicate) {
       throw new Error(
         'Questo archivio è già presente. Conferma esplicitamente il duplicato per salvarlo.',
@@ -91,9 +112,35 @@ export class SnapshotRepository {
 
     const id = crypto.randomUUID();
     const createdAt = new Date().toISOString();
-    const encrypted = await this.vault.encrypt({ ...archive, id, createdAt });
-    await this.db.snapshots.add({ id, createdAt, version: 1, ...encrypted });
-    return { id, duplicate };
+    const existing = await this.currentSnapshot();
+    const result = applyImportMode(existing?.datasets ?? null, archive.datasets, mode);
+    const sourceSnapshot: Snapshot = { ...archive, id, createdAt };
+    const currentSnapshot: Snapshot = { ...sourceSnapshot, datasets: result.datasets };
+    const [encryptedSource, encryptedCurrent] = await Promise.all([
+      this.vault.encrypt(sourceSnapshot),
+      this.vault.encrypt(currentSnapshot),
+    ]);
+
+    await this.db.transaction('rw', this.db.snapshots, this.db.currentState, async () => {
+      await this.db.snapshots.add({
+        id,
+        createdAt,
+        version: 1,
+        ...encryptedSource,
+      });
+      await this.db.currentState.put({
+        id,
+        createdAt,
+        version: 1,
+        ...encryptedCurrent,
+      });
+    });
+    return {
+      id,
+      mode,
+      ...result,
+      duplicateArchive: duplicate,
+    };
   }
 
   async all(): Promise<Snapshot[]> {
@@ -113,19 +160,56 @@ export class SnapshotRepository {
     return snapshots.reverse();
   }
 
+  async currentSnapshot(): Promise<Snapshot | null> {
+    if (!this.vault.isUnlocked()) {
+      throw new Error('Sblocca prima l’archivio locale.');
+    }
+    const record = await this.db.currentState.orderBy('createdAt').last();
+    if (!record) {
+      return null;
+    }
+    return this.vault.decrypt<Snapshot>({
+      salt: record.salt,
+      iv: record.iv,
+      ciphertext: record.ciphertext,
+    });
+  }
+
   async delete(id: string): Promise<void> {
     if (!this.vault.isUnlocked()) {
       throw new Error('Sblocca prima l’archivio locale.');
     }
-    await this.db.snapshots.delete(id);
+    await this.db.transaction('rw', this.db.snapshots, this.db.currentState, async () => {
+      await this.db.snapshots.delete(id);
+      await this.db.currentState.delete(id);
+    });
   }
 
   async clear(): Promise<void> {
-    await this.db.transaction('rw', this.db.snapshots, this.db.vault, async () => {
-      await this.db.snapshots.clear();
-      await this.db.vault.clear();
-    });
+    await this.db.transaction(
+      'rw',
+      this.db.snapshots,
+      this.db.currentState,
+      this.db.vault,
+      async () => {
+        await this.db.snapshots.clear();
+        await this.db.currentState.clear();
+        await this.db.vault.clear();
+      },
+    );
     this.lock();
+  }
+
+  private async ensureCurrentState(): Promise<void> {
+    await this.db.transaction('rw', this.db.snapshots, this.db.currentState, async () => {
+      const snapshots = await this.db.snapshots.toArray();
+      for (const snapshot of snapshots) {
+        const existing = await this.db.currentState.get(snapshot.id);
+        if (!existing) {
+          await this.db.currentState.put(snapshot);
+        }
+      }
+    });
   }
 
   private async findDuplicate(records: SnapshotEnvelope[], sourceHash: string): Promise<boolean> {

@@ -8,12 +8,14 @@
 
 L'utente può selezionare un proprio archivio Instagram ZIP o JSON. L'app lo analizza nel browser e può mostrare username, link e timestamp che sono già presenti nell'export. L'app non effettua scraping, non chiede password Instagram, non inferisce attributi sensibili e non accede all'account Instagram.
 
-Il parsing e l'anteprima avvengono in memoria nel browser. Su scelta esplicita, i payload snapshot vengono cifrati con AES-GCM e salvati in IndexedDB del browser. La passphrase non viene persistita; la chiave derivata è usata nella sessione in memoria. L'importazione può restare solo in memoria.
+Il percorso locale di importazione e confronto non richiede un account. Il parsing e l'anteprima avvengono in memoria nel browser. Su scelta esplicita, i payload snapshot vengono cifrati con AES-GCM e salvati in IndexedDB del browser. La passphrase non viene persistita; la chiave derivata è usata nella sessione in memoria. L'importazione può restare solo in memoria.
+
+Dopo la chiusura o il ricaricamento della pagina, l'utente deve sbloccare gli snapshot salvati dal Centro privacy locale usando la stessa passphrase. Non esiste un recupero della passphrase.
 
 ## Servizi esterni
 
 - **Supabase Auth:** non configurato. Se configurato, riceve solo i dati necessari all'autenticazione e alla sessione; gli archivi Instagram e i payload snapshot non vengono inviati.
-- **Vercel:** l'hosting statico riceve richieste HTTP e può generare log tecnici secondo la configurazione del provider; i file selezionati dal browser non sono inclusi nelle richieste dell'app.
+- **Vercel:** deployment non verificato. L'hosting statico riceve richieste HTTP e può generare log tecnici secondo la configurazione del provider; i file selezionati dal browser non sono inclusi nelle richieste dell'app.
 - **Analytics, error tracking, advertising:** non configurati.
 
 ## Conservazione e diritti

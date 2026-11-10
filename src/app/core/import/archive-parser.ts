@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import {
   DATASET_KEYS,
+  DatasetDetection,
   DatasetKey,
   InstagramAccount,
   ParsedArchive,
@@ -285,20 +286,55 @@ function emptyDatasets(): ParsedArchive['datasets'] {
   return {};
 }
 
+function addDetection(
+  detection: Partial<Record<DatasetKey, DatasetDetection>>,
+  dataset: DatasetKey,
+  values: Partial<DatasetDetection> = {},
+): void {
+  const current = detection[dataset] ?? {
+    filesFound: 0,
+    recordsRead: 0,
+    validRecords: 0,
+    invalidRecords: 0,
+  };
+  detection[dataset] = {
+    filesFound: current.filesFound + (values.filesFound ?? 0),
+    recordsRead: current.recordsRead + (values.recordsRead ?? 0),
+    validRecords: current.validRecords + (values.validRecords ?? 0),
+    invalidRecords: current.invalidRecords + (values.invalidRecords ?? 0),
+  };
+}
+
 function finalize(
   datasets: ParsedArchive['datasets'],
   sourceHash: string,
   invalidRecords: number,
   duplicateRecords: number,
   warnings: string[],
+  categoryDetection: Partial<Record<DatasetKey, DatasetDetection>>,
+  unrecognizedFiles: number,
 ): ParsedArchive {
   if (Object.keys(datasets).length === 0) {
     throw new Error('Schema Instagram non riconosciuto: nessun dataset supportato.');
+  }
+  const missing = DATASET_KEYS.filter((key) => !categoryDetection[key]?.filesFound);
+  if (missing.length > 0) {
+    warnings.push(`Categorie non presenti nell'archivio: ${missing.join(', ')}.`);
+  }
+  for (const key of DATASET_KEYS) {
+    categoryDetection[key] ??= {
+      filesFound: 0,
+      recordsRead: 0,
+      validRecords: 0,
+      invalidRecords: 0,
+    };
   }
   return {
     sourceHash,
     importedAt: new Date().toISOString(),
     datasets,
+    categoryDetection,
+    unrecognizedFiles,
     invalidRecords,
     duplicateRecords,
     warnings,
@@ -345,8 +381,10 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
   const hash = await sha256(buffer);
   const datasets = emptyDatasets();
   const warnings: string[] = [];
+  const categoryDetection: Partial<Record<DatasetKey, DatasetDetection>> = {};
   let invalidRecords = 0;
   let duplicateRecords = 0;
+  let unrecognizedFiles = 0;
   const now = Date.now();
   const signature = bytes.length >= 4 ? new DataView(buffer).getUint32(0, true) : 0;
 
@@ -359,6 +397,11 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
         continue;
       }
       const namedDataset = datasetFromName(entry.name);
+      const fileCategories = new Set<DatasetKey>();
+      if (namedDataset) {
+        addDetection(categoryDetection, namedDataset, { filesFound: 1 });
+        fileCategories.add(namedDataset);
+      }
       const zipFile = archive.file(entry.name);
       if (!zipFile || entry.uncompressedSize > MAX_JSON_ENTRY_BYTES) {
         continue;
@@ -370,6 +413,11 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
         raw = decodeJson(content);
       } catch {
         invalidRecords += 1;
+        if (namedDataset) {
+          addDetection(categoryDetection, namedDataset, { invalidRecords: 1 });
+        } else {
+          unrecognizedFiles += 1;
+        }
         warnings.push('Un file JSON non valido è stato ignorato.');
         continue;
       }
@@ -391,7 +439,16 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
           continue;
         }
         recognized = true;
+        if (!fileCategories.has(dataset)) {
+          addDetection(categoryDetection, dataset, { filesFound: 1 });
+          fileCategories.add(dataset);
+        }
         const parsed = parseRecords(candidate.value, now);
+        addDetection(categoryDetection, dataset, {
+          recordsRead: candidate.value.length,
+          validRecords: parsed.accounts.length,
+          invalidRecords: parsed.invalid,
+        });
         invalidRecords += parsed.invalid;
         const current = datasets[dataset] ?? [];
         const unique = new Map(current.map((account) => [account.username.toLowerCase(), account]));
@@ -406,6 +463,7 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
         datasets[dataset] = [...unique.values()];
       }
       if (!recognized) {
+        unrecognizedFiles += 1;
         warnings.push('Un file JSON con schema non riconosciuto è stato ignorato.');
       }
     }
@@ -430,7 +488,13 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
           key: datasetFromKey(candidate.key),
           value: candidate.value,
         }));
+    const fileCategories = new Set<DatasetKey>();
+    if (directDataset) {
+      addDetection(categoryDetection, directDataset, { filesFound: 1 });
+      fileCategories.add(directDataset);
+    }
 
+    let recognized = false;
     for (const candidate of candidates) {
       const dataset =
         typeof candidate.key === 'string' && DATASET_KEYS.includes(candidate.key as DatasetKey)
@@ -439,7 +503,17 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
       if (!dataset || !Array.isArray(candidate.value)) {
         continue;
       }
+      recognized = true;
+      if (!fileCategories.has(dataset)) {
+        addDetection(categoryDetection, dataset, { filesFound: 1 });
+        fileCategories.add(dataset);
+      }
       const parsed = parseRecords(candidate.value, now);
+      addDetection(categoryDetection, dataset, {
+        recordsRead: candidate.value.length,
+        validRecords: parsed.accounts.length,
+        invalidRecords: parsed.invalid,
+      });
       invalidRecords += parsed.invalid;
       const unique = new Map<string, InstagramAccount>();
       for (const account of parsed.accounts) {
@@ -452,7 +526,19 @@ export async function parseInstagramFile(file: File): Promise<ParsedArchive> {
       }
       datasets[dataset] = [...unique.values()];
     }
+    if (!recognized) {
+      unrecognizedFiles += 1;
+      warnings.push('Il file JSON non contiene categorie supportate.');
+    }
   }
 
-  return finalize(datasets, hash, invalidRecords, duplicateRecords, warnings);
+  return finalize(
+    datasets,
+    hash,
+    invalidRecords,
+    duplicateRecords,
+    warnings,
+    categoryDetection,
+    unrecognizedFiles,
+  );
 }

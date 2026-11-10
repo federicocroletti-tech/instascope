@@ -63,6 +63,104 @@ describe('SnapshotRepository', () => {
     await expect(repository.all()).resolves.toHaveLength(2);
   });
 
+  it('keeps imported snapshots immutable while exposing the selected current dataset view', async () => {
+    await repository.initialize(passphrase);
+    const first = {
+      ...createArchive('first-hash'),
+      datasets: {
+        followers: [{ username: 'Alice' }],
+        following: [{ username: 'old_following' }],
+      },
+    };
+    const second = {
+      ...createArchive('second-hash'),
+      datasets: {
+        followers: [
+          { username: 'alice', profileUrl: 'https://www.instagram.com/alice/' },
+          { username: 'new_follower' },
+        ],
+        pendingRequests: [{ username: 'pending_user' }],
+      },
+    };
+
+    await repository.importArchive(first, 'replace');
+    const integration = await repository.importArchive(second, 'integrate-new');
+    const merged = await repository.currentSnapshot();
+
+    expect(integration).toMatchObject({
+      mode: 'integrate-new',
+      recordsAdded: 2,
+      recordsUpdated: 0,
+      recordsIgnored: 1,
+      recordsReplaced: 0,
+    });
+    expect(merged?.datasets).toEqual({
+      followers: [{ username: 'Alice' }, { username: 'new_follower' }],
+      following: [{ username: 'old_following' }],
+      pendingRequests: [{ username: 'pending_user' }],
+    });
+
+    const update = {
+      ...createArchive('third-hash'),
+      datasets: {
+        followers: [
+          { username: 'ALICE', profileUrl: 'https://www.instagram.com/alice-updated/' },
+          { username: 'NEW_FOLLOWER', profileUrl: 'https://www.instagram.com/new_follower/' },
+        ],
+      },
+    };
+    const updateReport = await repository.importArchive(update, 'merge-update');
+    const afterUpdate = await repository.currentSnapshot();
+    const history = await repository.all();
+
+    expect(updateReport).toMatchObject({
+      mode: 'merge-update',
+      recordsAdded: 0,
+      recordsUpdated: 2,
+      recordsIgnored: 0,
+    });
+    expect(afterUpdate?.datasets.followers?.[0]).toEqual(update.datasets.followers[0]);
+    expect(afterUpdate?.datasets.following).toEqual([{ username: 'old_following' }]);
+    expect(history).toHaveLength(3);
+    expect(history[0].datasets).toEqual(update.datasets);
+    expect(history[1].datasets).toEqual(second.datasets);
+    expect(history[2].datasets).toEqual(first.datasets);
+  });
+
+  it('restores the previous merged current view when deleting a later import', async () => {
+    await repository.initialize(passphrase);
+    const first = await repository.importArchive(createArchive('first-current-hash'), 'replace');
+    const second = await repository.importArchive(
+      {
+        ...createArchive('second-current-hash'),
+        datasets: {
+          followers: [{ username: 'second_follower' }],
+          following: [{ username: 'new' }],
+        },
+      },
+      'integrate-new',
+    );
+    const third = await repository.importArchive(
+      {
+        ...createArchive('third-current-hash'),
+        datasets: { pendingRequests: [{ username: 'new' }] },
+      },
+      'integrate-new',
+    );
+
+    await repository.delete(third.id);
+
+    await expect(repository.currentSnapshot()).resolves.toMatchObject({
+      id: second.id,
+      datasets: {
+        followers: [{ username: 'synthetic_user' }, { username: 'second_follower' }],
+        following: [{ username: 'new' }],
+      },
+    });
+    await expect(repository.all()).resolves.toHaveLength(2);
+    expect(first.id).not.toBe(second.id);
+  });
+
   it('deletes one snapshot and clears the local vault', async () => {
     await repository.initialize(passphrase);
     const saved = await repository.save(createArchive('delete-hash'));

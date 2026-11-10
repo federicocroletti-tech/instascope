@@ -1,21 +1,50 @@
-<a class="skip-link" href="#main-content">Vai al contenuto</a>
-<header class="topbar">
-  <a class="wordmark" routerLink="/" aria-label="InstaScope, pagina iniziale">InstaScope</a>
-  <nav class="top-links" aria-label="Navigazione principale">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-      >Panoramica</a
+<a class="skip-link" href="#main-content">{{
+  locale.text('Vai al contenuto', 'Skip to content')
+}}</a>
+<header class="topbar" [class.workspace-topbar]="isWorkspace()">
+  <a
+    class="wordmark"
+    routerLink="/"
+    [attr.aria-label]="locale.text('InstaScope, pagina iniziale', 'InstaScope home')"
+    >InstaScope</a
+  >
+  @if (!isWorkspace()) {
+    <nav
+      class="top-links"
+      [attr.aria-label]="locale.text('Navigazione principale', 'Main navigation')"
     >
-    <a routerLink="/demo" routerLinkActive="active">Demo</a>
-    <a routerLink="/login" routerLinkActive="active">Area privata</a>
-  </nav>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{
+        locale.text('Panoramica', 'Overview')
+      }}</a>
+      <a routerLink="/demo" routerLinkActive="active">{{ locale.text('Demo', 'Demo') }}</a>
+      <a routerLink="/guida-export" routerLinkActive="active">{{
+        locale.text('Guida export', 'Export guide')
+      }}</a>
+      <a routerLink="/login" routerLinkActive="active">{{
+        locale.text('Area privata', 'Private workspace')
+      }}</a>
+    </nav>
+  }
   <div class="top-actions">
-    <button
-      class="quiet-button"
-      type="button"
-      (click)="toggleTheme()"
-      [attr.aria-label]="isLight() ? 'Attiva tema scuro' : 'Attiva tema chiaro'"
+    <label class="sr-only" for="app-locale">{{ locale.text('Lingua', 'Language') }}</label>
+    <select
+      id="app-locale"
+      class="quiet-button locale-select"
+      [value]="locale.locale()"
+      (change)="setLocale($event)"
     >
-      {{ isLight() ? 'Tema scuro' : 'Tema chiaro' }}
+      <option value="it-IT">Italiano</option>
+      <option value="en-US">English</option>
+    </select>
+    @if (isWorkspace()) {
+      <a class="quiet-button" [routerLink]="importPath()">{{ locale.text('Importa', 'Import') }}</a>
+    }
+    <button class="quiet-button" type="button" (click)="toggleTheme()">
+      {{
+        isLight()
+          ? locale.text('Attiva tema scuro', 'Enable dark theme')
+          : locale.text('Attiva tema chiaro', 'Enable light theme')
+      }}
     </button>
     <button
       class="quiet-button command-button"
@@ -23,56 +52,62 @@
       (click)="openCommandPalette()"
       aria-keyshortcuts="Control+K Meta+K"
     >
-      Cerca <kbd>Ctrl K</kbd>
+      {{ locale.text('Cerca', 'Search') }} <kbd>Ctrl K</kbd>
     </button>
-    <button
-      class="menu-button"
-      type="button"
-      (click)="toggleMenu()"
-      [attr.aria-expanded]="menuOpen()"
-      aria-controls="app-navigation"
-    >
-      <span class="sr-only">{{ menuOpen() ? 'Chiudi navigazione' : 'Apri navigazione' }}</span>
-      <span aria-hidden="true">{{ menuOpen() ? '×' : '☰' }}</span>
-    </button>
+    @if (isWorkspace()) {
+      <button
+        class="menu-button"
+        type="button"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="app-navigation"
+      >
+        <span class="sr-only">{{
+          menuOpen()
+            ? locale.text('Chiudi navigazione', 'Close navigation')
+            : locale.text('Apri navigazione', 'Open navigation')
+        }}</span>
+        <span aria-hidden="true">{{ menuOpen() ? '×' : '☰' }}</span>
+      </button>
+    }
   </div>
 </header>
 
 @if (isDemo()) {
   <p class="demo-banner" role="status">
-    <strong>Dati dimostrativi.</strong> Profili e valori sono sintetici e non provengono da
-    Instagram.
+    <strong>{{ locale.text('Dati dimostrativi.', 'Sample data.') }}</strong>
+    {{
+      locale.text(
+        'Profili e valori sono sintetici e non provengono da Instagram.',
+        'Profiles and values are synthetic and are not from Instagram.'
+      )
+    }}
   </p>
 }
 
-<div class="app-layout" [class.menu-open]="menuOpen()">
-  <nav id="app-navigation" class="sidebar" aria-label="Sezioni dell’app">
-    @if (isDemo()) {
-      <a routerLink="/demo" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-        >Dashboard</a
-      >
-      <a routerLink="/demo/import" routerLinkActive="active">Procedura import</a>
-      <a routerLink="/demo/pending-requests" routerLinkActive="active">Richieste pendenti</a>
-      <a routerLink="/demo/relationships" routerLinkActive="active">Relazioni</a>
-      <a routerLink="/demo/recent" routerLinkActive="active">Ultimi aggiunti</a>
-      <a routerLink="/demo/recommendations" routerLinkActive="active">Suggerimenti</a>
-      <a routerLink="/demo/insights" routerLinkActive="active">Limiti e consigli</a>
-      <a routerLink="/demo/privacy" routerLinkActive="active">Centro privacy</a>
-      <a routerLink="/demo/demographics" routerLinkActive="active">Dati non disponibili</a>
-      <a routerLink="/demo/settings" routerLinkActive="active">Impostazioni</a>
-    } @else {
-      <a routerLink="/app/dashboard" routerLinkActive="active">Dashboard privata</a>
-      <a routerLink="/app/imports" routerLinkActive="active">Importazioni</a>
-      <a routerLink="/app/pending-requests" routerLinkActive="active">Richieste pendenti</a>
-      <a routerLink="/app/relationships" routerLinkActive="active">Relazioni</a>
-      <a routerLink="/app/recent" routerLinkActive="active">Ultimi aggiunti</a>
-      <a routerLink="/app/recommendations" routerLinkActive="active">Suggerimenti</a>
-      <a routerLink="/app/insights" routerLinkActive="active">Limiti e consigli</a>
-      <a routerLink="/app/privacy" routerLinkActive="active">Centro privacy</a>
-      <a routerLink="/app/demographics" routerLinkActive="active">Dati non disponibili</a>
-      <a routerLink="/app/settings" routerLinkActive="active">Impostazioni</a>
-    }
-  </nav>
+<div class="app-layout" [class.workspace-layout]="isWorkspace()" [class.menu-open]="menuOpen()">
+  @if (isWorkspace()) {
+    <nav
+      id="app-navigation"
+      class="sidebar"
+      [attr.aria-label]="locale.text('Sezioni dell’app', 'App sections')"
+    >
+      @for (section of navigationSections(); track section.label) {
+        <div class="sidebar-group">
+          <p class="sidebar-group-label">{{ section.label }}</p>
+          @for (item of section.items; track item.path) {
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: item.exact }"
+              (click)="menuOpen.set(false)"
+              >{{ item.label }}</a
+            >
+          }
+        </div>
+      }
+    </nav>
+  }
   <main id="main-content" class="main-content">
     <router-outlet />
   </main>
@@ -83,7 +118,7 @@
     <button
       class="command-backdrop"
       type="button"
-      aria-label="Chiudi ricerca e comandi"
+      [attr.aria-label]="locale.text('Chiudi ricerca e comandi', 'Close search and commands')"
       (click)="closeCommandPalette()"
     ></button>
     <section
@@ -93,8 +128,8 @@
       aria-labelledby="command-title"
       (keydown.escape)="closeCommandPalette()"
     >
-      <h2 id="command-title">Ricerca e comandi</h2>
-      <label for="command-search">Vai a una sezione</label>
+      <h2 id="command-title">{{ locale.text('Ricerca e comandi', 'Search and commands') }}</h2>
+      <label for="command-search">{{ locale.text('Vai a una sezione', 'Go to a section') }}</label>
       <input
         id="command-search"
         type="search"
@@ -107,11 +142,11 @@
             <a [routerLink]="item.path" (click)="closeCommandPalette()">{{ item.label }}</a>
           </li>
         } @empty {
-          <li>Nessun risultato.</li>
+          <li>{{ locale.text('Nessun risultato.', 'No results.') }}</li>
         }
       </ul>
       <button type="button" class="quiet-button" (click)="closeCommandPalette()">
-        Chiudi <kbd>Esc</kbd>
+        {{ locale.text('Chiudi', 'Close') }} <kbd>Esc</kbd>
       </button>
     </section>
   </div>

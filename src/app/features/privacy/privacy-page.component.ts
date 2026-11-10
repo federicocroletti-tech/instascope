@@ -2,6 +2,7 @@ import { Component, signal, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SnapshotFacade } from '../../core/state/snapshot.facade';
+import { LocaleService } from '../../core/i18n/locale.service';
 
 @Component({
   selector: 'app-privacy-page',
@@ -9,23 +10,54 @@ import { SnapshotFacade } from '../../core/state/snapshot.facade';
   template: `
     <section class="page">
       <header class="page-heading">
-        <p class="eyebrow">{{ demo ? 'Demo sintetica' : 'Dati sul dispositivo' }}</p>
-        <h1>Centro privacy</h1>
+        <p class="eyebrow">
+          {{
+            demo
+              ? locale.text('Demo sintetica', 'Sample demo')
+              : localMode
+                ? locale.text('Area locale · senza account', 'Local workspace · no account')
+                : locale.text('Dati sul dispositivo', 'On-device data')
+          }}
+        </p>
+        <h1>{{ locale.text('Centro privacy', 'Privacy center') }}</h1>
         <p class="lead">
-          I file importati non vengono inviati a server. Solo gli snapshot che scegli di salvare
-          restano in IndexedDB, cifrati.
+          {{
+            locale.text(
+              'I file importati non vengono inviati a server. Solo gli snapshot che scegli di salvare restano in IndexedDB, cifrati.',
+              'Imported files are never sent to a server. Only snapshots you choose to save remain encrypted in IndexedDB.'
+            )
+          }}
         </p>
       </header>
 
       @if (demo) {
         <p class="status-message" role="status">
-          La demo usa dataset sintetici e non persiste dati personali.
+          {{
+            locale.text(
+              'La demo usa dataset sintetici e non persiste dati personali.',
+              'The demo uses synthetic datasets and does not persist personal data.'
+            )
+          }}
         </p>
-        <a class="primary-button" routerLink="/demo">Torna alla dashboard demo</a>
+        <a class="primary-button" routerLink="/demo">{{
+          locale.text('Torna alla dashboard demo', 'Return to demo dashboard')
+        }}</a>
       } @else {
+        @if (localMode) {
+          <p class="status-message">
+            {{
+              locale.text(
+                'Dopo aver chiuso o ricaricato il browser, torna qui e sblocca gli snapshot con la stessa passphrase. Se la dimentichi, non possiamo recuperarli.',
+                'After closing or reloading the browser, return here and unlock snapshots with the same passphrase. If you forget it, we cannot recover them.'
+              )
+            }}
+          </p>
+        }
         <section class="card unlock">
-          <h2>Sblocca i tuoi snapshot</h2>
-          <label for="privacy-passphrase">Passphrase locale</label>
+          <h2>{{ locale.text('Sblocca i tuoi snapshot', 'Unlock your snapshots') }}</h2>
+          <label for="privacy-passphrase">{{
+            locale.text('Passphrase locale', 'Local passphrase')
+          }}</label>
           <input
             id="privacy-passphrase"
             type="password"
@@ -39,7 +71,7 @@ import { SnapshotFacade } from '../../core/state/snapshot.facade';
             [disabled]="busy() || passphrase().length < 12"
             (click)="unlock()"
           >
-            Sblocca
+            {{ locale.text('Sblocca', 'Unlock') }}
           </button>
           @if (error()) {
             <p role="alert">{{ error() }}</p>
@@ -48,52 +80,100 @@ import { SnapshotFacade } from '../../core/state/snapshot.facade';
 
         @if (facade.snapshots().length) {
           <section class="card snapshot-list">
-            <h2>Snapshot salvati localmente</h2>
+            <h2>
+              {{ locale.text('Snapshot salvati localmente', 'Snapshots saved on this device') }}
+            </h2>
             <p>
-              Stato:
-              {{ facade.persistence() === 'local' ? 'cifrati in IndexedDB' : 'solo in memoria' }}.
+              {{ locale.text('Stato:', 'Status:') }}
+              {{
+                facade.persistence() === 'local'
+                  ? locale.text('cifrati in IndexedDB', 'encrypted in IndexedDB')
+                  : locale.text('solo in memoria', 'in memory only')
+              }}.
             </p>
             <ul>
               @for (snapshot of facade.snapshots(); track snapshot.id) {
                 <li>
                   <span
-                    >{{ snapshot.createdAt | date: 'medium' }} ·
-                    {{ snapshot.datasets.followers?.length ?? 'n/d' }} follower ·
+                    >{{ snapshot.createdAt | date: 'medium' : '' : locale.locale() }} ·
+                    {{ snapshot.datasets.followers?.length ?? 'n/d' }}
+                    {{ locale.text('follower', 'followers') }} ·
                     {{ snapshot.datasets.following?.length ?? 'n/d' }} following</span
                   >
                   <button class="quiet-button" type="button" (click)="delete(snapshot.id)">
-                    Elimina snapshot
+                    {{ locale.text('Elimina snapshot', 'Delete snapshot') }}
                   </button>
                 </li>
               }
             </ul>
             <button class="danger-button" type="button" [disabled]="busy()" (click)="deleteAll()">
-              Elimina tutti i dati locali
+              {{ locale.text('Elimina tutti i dati locali', 'Delete all local data') }}
             </button>
           </section>
         }
 
         <section class="card data-flow">
-          <h2>Flusso dei dati</h2>
+          <h2>{{ locale.text('Flusso dei dati', 'Data flow') }}</h2>
           <ul>
-            <li>ZIP/JSON: browser → Web Worker → memoria del browser.</li>
             <li>
-              Salvataggio facoltativo: payload AES-GCM in IndexedDB; chiave derivata dalla
-              passphrase e mantenuta solo in memoria.
+              {{
+                locale.text(
+                  'ZIP/JSON: browser → Web Worker → memoria del browser.',
+                  'ZIP/JSON: browser → Web Worker → browser memory.'
+                )
+              }}
             </li>
             <li>
-              Supabase Auth riceve i soli dati di autenticazione; il servizio non riceve archivi o
-              record Instagram.
+              {{
+                locale.text(
+                  'Salvataggio facoltativo: payload AES-GCM in IndexedDB; chiave derivata dalla passphrase e mantenuta solo in memoria.',
+                  'Optional storage: AES-GCM payload in IndexedDB; key derived from the passphrase and kept in memory only.'
+                )
+              }}
+            </li>
+            @if (!localMode) {
+              <li>
+                {{
+                  locale.text(
+                    'Supabase Auth riceve i soli dati di autenticazione; il servizio non riceve archivi o record Instagram.',
+                    'Supabase Auth receives authentication data only; the service receives no archives or Instagram records.'
+                  )
+                }}
+              </li>
+            } @else {
+              <li>
+                {{
+                  locale.text(
+                    'Questo percorso non usa login o Supabase.',
+                    'This flow does not use sign-in or Supabase.'
+                  )
+                }}
+              </li>
+            }
+            <li>
+              {{
+                locale.text(
+                  'Hosting Vercel può ricevere richieste HTTP standard e metadati tecnici; i file del browser non sono inclusi nelle richieste dell’app.',
+                  'Vercel hosting may receive standard HTTP requests and technical metadata; browser files are not included in app requests.'
+                )
+              }}
             </li>
             <li>
-              Hosting Vercel può ricevere richieste HTTP standard e metadati tecnici; i file del
-              browser non sono inclusi nelle richieste dell’app.
+              {{
+                locale.text(
+                  'Analytics non essenziali: non configurati.',
+                  'Non-essential analytics: not configured.'
+                )
+              }}
             </li>
-            <li>Analytics non essenziali: non configurati.</li>
           </ul>
           <p>
-            La cancellazione IndexedDB non elimina copie esportate dall'utente, backup del browser o
-            file sorgente sul dispositivo.
+            {{
+              locale.text(
+                'La cancellazione IndexedDB non elimina copie esportate dall’utente, backup del browser o file sorgente sul dispositivo.',
+                'Deleting IndexedDB does not remove user-exported copies, browser backups, or source files on the device.'
+              )
+            }}
           </p>
         </section>
       }
@@ -148,8 +228,10 @@ import { SnapshotFacade } from '../../core/state/snapshot.facade';
 })
 export class PrivacyPageComponent {
   readonly facade = inject(SnapshotFacade);
+  readonly locale = inject(LocaleService);
 
   readonly demo: boolean;
+  readonly localMode: boolean;
   readonly passphrase = signal('');
   readonly error = signal<string | null>(null);
   readonly busy = signal(false);
@@ -158,6 +240,7 @@ export class PrivacyPageComponent {
     const route = inject(ActivatedRoute);
 
     this.demo = route.snapshot.data['demo'] === true;
+    this.localMode = route.snapshot.data['local'] === true;
   }
 
   setPassphrase(event: Event): void {
@@ -193,7 +276,10 @@ export class PrivacyPageComponent {
     if (
       typeof window === 'undefined' ||
       !window.confirm(
-        'Eliminare in modo permanente tutti gli snapshot e i dati cifrati da questo browser?',
+        this.locale.text(
+          'Eliminare in modo permanente tutti gli snapshot e i dati cifrati da questo browser?',
+          'Permanently delete all snapshots and encrypted data from this browser?',
+        ),
       )
     ) {
       return;
