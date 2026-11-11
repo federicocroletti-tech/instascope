@@ -9,6 +9,7 @@ Applicazione Angular local-first per esplorare export JSON/ZIP di Instagram. Il 
 - Landing e demo pubblica con dati sintetici dichiarati.
 - Dashboard, confronti, relazioni, richieste pendenti, suggerimenti esplicabili e limiti delle metriche.
 - Interfaccia disponibile in italiano e inglese, con date formattate per la lingua selezionata.
+- Domande AI opzionali in `/app/insights`, con consenso per ogni richiesta, soli aggregati e verifica owner sul server. Demo con esempio locale dichiarato; `/local` resta offline. Configurazione e limiti in [AI-INSIGHTS.md](docs/AI-INSIGHTS.md).
 - Grafici e tabelle esportabili in CSV; l’export protegge le celle da formula injection.
 - Parser JSON/ZIP locale in Web Worker, hash SHA-256, controlli su dimensione, numero entry, decompressione e path traversal.
 - Anteprima con categorie presenti/assenti e record non validi; import in memoria oppure cifrato in
@@ -22,6 +23,8 @@ Applicazione Angular local-first per esplorare export JSON/ZIP di Instagram. Il 
 - Route area privata `/app` ancora chiuse senza Supabase configurato e ruolo owner verificato; le route locali e private sono `noindex`.
 
 Non esegue scraping, non chiede credenziali Instagram, non contatta API Instagram e non invia export o record a Supabase, Vercel o analytics. La demo non carica file.
+
+Solo attivando l'AI privata, domanda, conteggi e date vengono inviati tramite la funzione Vercel a OpenAI. Gli archivi e gli username non sono aggiunti al payload. Evitare dati personali nel testo libero della domanda.
 
 ## Stack
 

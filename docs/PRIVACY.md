@@ -17,6 +17,7 @@ Dopo la chiusura o il ricaricamento della pagina, l'utente deve sbloccare gli sn
 - **Supabase Auth:** non configurato. Se configurato, riceve solo i dati necessari all'autenticazione e alla sessione; gli archivi Instagram e i payload snapshot non vengono inviati.
 - **Vercel:** deployment non verificato. L'hosting statico riceve richieste HTTP e può generare log tecnici secondo la configurazione del provider; i file selezionati dal browser non sono inclusi nelle richieste dell'app.
 - **Analytics, error tracking, advertising:** non configurati.
+- **OpenAI, solo AI privata opzionale:** dopo consenso per ogni richiesta, la funzione Vercel riceve domanda, conteggi e date degli ultimi due snapshot e li invia a OpenAI. Non vengono aggiunti archivi, username, URL profilo, hash o identificativi snapshot. Il testo libero puo contenere dati personali se inseriti dall'utente: non inserirli. Supabase verifica solo la sessione e il ruolo owner. La demo e `/local` non contattano l'AI. L'app non persiste domande o risposte e usa `Cache-Control: no-store`; `store: false` non garantisce assenza di conservazione da parte del provider. Verificare condizioni, conservazione, trasferimenti e accordi del provider prima dell'attivazione. Dettagli in [AI-INSIGHTS.md](AI-INSIGHTS.md).
 
 ## Conservazione e diritti
 

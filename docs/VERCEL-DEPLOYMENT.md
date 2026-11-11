@@ -53,3 +53,7 @@ Supabase rimane opzionale per l'area privata e non riceve gli archivi.
 Non inserire service-role key nelle variabili client o nel repository.
 `NG_APP_SUPABASE_ANON_KEY` è pubblica per definizione: l'accesso privato richiede
 comunque policy server-side appropriate, non soltanto controlli UI.
+
+### AI opzionale
+
+La funzione Node `/api/insights` viene distribuita separatamente dal bundle statico. Per abilitarla impostare `OPENAI_API_KEY` e `INSTASCOPE_AI_MODEL` come variabili server, oltre ai due valori Supabase gia previsti. Non copiarle nel runtime-config pubblico. Richiede un utente verificato da Supabase con ruolo `owner` in `app_metadata`, assegnato solo da un amministratore. Senza configurazione completa l'endpoint POST risponde 503 e il pannello non abilita richieste. Configurare budget e verificare condizioni privacy prima dell'attivazione; seguire [AI-INSIGHTS.md](AI-INSIGHTS.md). Nessuna modifica alle API Meta e nessun caricamento di archivi.

@@ -20,4 +20,12 @@ Asset: file export, username/relazioni/timestamp, passphrase in memoria, ciphert
 
 ## Fuori ambito / da verificare
 
+## AI opzionale
+
+L'endpoint `/api/insights` verifica il bearer token con Supabase Auth e il ruolo in `app_metadata` sul server, indipendentemente dal guard client. Sono ammessi solo conteggi, date, lingua, consenso e domanda (600 caratteri); payload massimo 4096 byte. Timeout, limite token e risposte di errore sanificate riducono abusi e leak. Le risposte sono interpolate come testo, mai HTML. Nessun tool, SQL o azione Instagram viene esposto al modello.
+
+Rischi residui: prompt injection e allucinazioni non sono eliminati; gli aggregati client non sono attestati; il testo libero puo contenere dati personali; i limiti di 5 richieste/minuto e 50/giorno sono per istanza e si azzerano con il processo. Non sono un tetto globale di spesa: configurare budget/quote del provider prima di abilitare l'AI. Per un'apertura multiutente occorrono quota atomica condivisa e revisione privacy. Vedere [AI-INSIGHTS.md](AI-INSIGHTS.md).
+
+## Verifiche operative pendenti
+
 Account e provider Vercel/Supabase, policy di autorizzazione, processo incidenti operativo, gestione backup, verifica di tutti gli header live, audit dipendenze/CodeQL su CI, test di penetrazione e analisi GDPR/DPIA legale.

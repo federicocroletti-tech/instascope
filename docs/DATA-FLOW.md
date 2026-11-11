@@ -13,3 +13,5 @@
 | CSV                      | Dati selezionati dall'utente            | Download locale                    | Nessun upload; neutralizzazione celle formula.                                                         |
 
 Non è presente un backend che riceva, indicizzi o salvi snapshot Instagram. I dati in IndexedDB restano soggetti al controllo del browser, del dispositivo e ai backup dell'utente.
+
+Eccezione opzionale, solo `/app/insights`: consenso esplicito -> domanda e aggregati (conteggi e date) -> funzione `/api/insights` su Vercel -> OpenAI. La funzione verifica il token con Supabase Auth e richiede `app_metadata.role=owner`. Nessun archivio o record viene aggiunto; il testo libero e inviato come scritto dall'utente. Domande e risposte restano in memoria, non nei log applicativi o nel database. Demo e percorso `/local` non usano questa funzione. Conservazione dei provider e limiti in [AI-INSIGHTS.md](AI-INSIGHTS.md).

@@ -2,6 +2,9 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist/instascope/browser",
   "framework": "angular",
+  "functions": {
+    "api/insights.mjs": { "maxDuration": 60 }
+  },
   "rewrites": [
     { "source": "/local/:path*", "destination": "/index.html" },
     { "source": "/import", "destination": "/index.html" },

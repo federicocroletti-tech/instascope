@@ -112,6 +112,17 @@ import { LocaleService } from '../../core/i18n/locale.service';
           </section>
         }
 
+        @if (!localMode) {
+          <p class="status-message">
+            {{
+              locale.text(
+                'AI privata opzionale: solo dopo consenso, domanda, conteggi e date vengono inviati a OpenAI tramite il server. Non inserire dati personali nella domanda. Gli archivi non vengono inviati; la conservazione del provider dipende dai suoi termini e dalla configurazione.',
+                'Optional private AI: only with consent, your question, counts and dates are sent to OpenAI through the server. Do not enter personal data in the question. Archives are not sent; provider retention depends on its terms and configuration.'
+              )
+            }}
+          </p>
+        }
+
         <section class="card data-flow">
           <h2>{{ locale.text('Flusso dei dati', 'Data flow') }}</h2>
           <ul>

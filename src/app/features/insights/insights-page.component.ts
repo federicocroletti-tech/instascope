@@ -3,10 +3,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SnapshotFacade } from '../../core/state/snapshot.facade';
 import { DEMO_SNAPSHOTS } from '../demo/demo-data';
 import { LocaleService } from '../../core/i18n/locale.service';
+import { AiInsightsComponent } from './ai-insights.component';
 
 @Component({
   selector: 'app-insights-page',
-  imports: [RouterLink],
+  imports: [RouterLink, AiInsightsComponent],
   template: `
     <section class="page">
       <header class="page-heading">
@@ -65,6 +66,12 @@ import { LocaleService } from '../../core/i18n/locale.service';
           locale.text('Vai alle importazioni', 'Go to imports')
         }}</a>
       }
+
+      <app-ai-insights
+        [snapshots]="snapshots()"
+        [demo]="demo"
+        [cloudAllowed]="!localMode && !demo"
+      />
 
       <aside class="card limits">
         <h2>{{ locale.text('Metriche non disponibili', 'Unavailable metrics') }}</h2>

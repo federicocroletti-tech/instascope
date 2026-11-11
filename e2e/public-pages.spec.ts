@@ -110,6 +110,33 @@ test('private route stays closed without authentication and is noindex', async (
   );
 });
 
+test('AI preview is explicitly local and stays offline on desktop and mobile', async ({ page }) => {
+  const apiRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/insights')) apiRequests.push(request.url());
+  });
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/demo/insights');
+    await expect(
+      page.getByText('Nessun modello AI viene contattato.', { exact: false }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Mostra riepilogo di esempio' }).click();
+    await expect(page.getByRole('heading', { name: 'Esempio locale' })).toBeVisible();
+    await expect(page.locator('.answer')).toContainText('Possibili uscite: 1');
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
+    await page.getByRole('button', { name: 'Cancella risposta' }).click();
+    await expect(page.getByRole('heading', { name: 'Esempio locale' })).toHaveCount(0);
+  }
+  await page.goto('/local/insights');
+  await expect(page.getByText('AI non disponibile.', { exact: false })).toBeVisible();
+  expect(apiRequests).toEqual([]);
+});
+
 test('public routes have no automated WCAG 2.2 A/AA violations', async ({ page }) => {
   test.setTimeout(120_000);
   for (const route of demoRoutes) {

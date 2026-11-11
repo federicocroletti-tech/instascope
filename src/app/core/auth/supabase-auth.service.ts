@@ -55,6 +55,12 @@ export class SupabaseAuthService {
     return data.user.app_metadata['role'] === 'owner';
   }
 
+  async accessToken(): Promise<string | null> {
+    if (!this.client) return null;
+    const { data, error } = await this.client.auth.getSession();
+    return error ? null : (data.session?.access_token ?? null);
+  }
+
   async signOut(): Promise<void> {
     const client = this.client;
     if (!client) {

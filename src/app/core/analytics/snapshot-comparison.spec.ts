@@ -6,6 +6,7 @@ import {
   partitionLostFollowers,
 } from './snapshot-comparison';
 import { Snapshot } from '../../shared/models/snapshot.model';
+import { buildInsightSummary } from './insight-summary';
 
 const older: Snapshot = {
   id: 'older',
@@ -36,6 +37,24 @@ const current: Snapshot = {
 };
 
 describe('snapshot comparison', () => {
+  it('builds an aggregate-only AI summary in chronological order', () => {
+    const summary = buildInsightSummary([older, current]);
+    expect(summary).toEqual({
+      currentDate: current.createdAt,
+      previousDate: older.createdAt,
+      followers: 2,
+      following: 2,
+      pendingRequests: null,
+      newFollowers: 1,
+      lostFollowers: 1,
+      nonReciprocal: 1,
+    });
+    expect(JSON.stringify(summary)).not.toMatch(/username|sourceHash|synthetic|profileUrl/);
+    expect(buildInsightSummary([])).toBeNull();
+    expect(buildInsightSummary([current])?.lostFollowers).toBeNull();
+    expect(buildInsightSummary([{ ...current, datasets: { followers: [] } }])?.followers).toBe(0);
+  });
+
   it('compares usernames case-insensitively and reports unavailable datasets as null', () => {
     const result = compareSnapshots(current, older);
 
